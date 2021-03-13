@@ -1,0 +1,60 @@
+version: '3'
+
+volumes:
+    pgdata:
+        driver: local
+services:
+    classifier_nginx:
+        restart: always
+        build: ./docker/classifier_nginx
+        image: nginx:1.18.0-alpine
+        ports:
+            - 1338:81
+        volumes:
+            - ./classifier_back/static:/srv/www/classifier_back/static
+        depends_on:
+            - classifier
+    articles_nginx:
+        restart: always
+        build: ./docker/nginx
+        image: nginx:latest
+        ports:
+          - 1337:80
+        volumes:
+            - ./back/static:/srv/www/back/static
+        depends_on:
+            - python
+    python:
+        restart: always
+        env_file:
+            - ./back/back/.env.prod
+        build:
+            context: .
+            dockerfile: docker/python/Dockerfile.prod
+        volumes:
+            - ./back:/srv/www/back
+        expose:
+          - 8000
+        depends_on:
+            - postgres_db
+        command: "gunicorn -c gunicorn.py back.wsgi"
+    classifier:
+        restart: always
+        env_file:
+            - ./classifier_back/classifier_back/.env.prod
+        build:
+            context: .
+            dockerfile: docker/classifier/Dockerfile.prod
+        volumes:
+            - ./classifier_back:/srv/www/classifier_back
+        expose:
+            - 8001
+        depends_on:
+            - postgres_db
+        command: "gunicorn -c gunicorn.py classifier_back.wsgi"
+    postgres_db:
+        image: postgres:13
+        env_file:
+            - ./back/back/.env.prod
+        volumes:
+            - ./postgresql:/backups

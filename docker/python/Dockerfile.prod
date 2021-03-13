@@ -1,0 +1,12 @@
+FROM python:3.9
+
+ENV HOME=/srv/www
+ENV BACK_HOME=/srv/www/back
+ENV PYTHONUNBUFFERED=1
+COPY ./back $BACK_HOME
+WORKDIR $BACK_HOME
+RUN mkdir $BACK_HOME/staticfiles
+
+RUN pip install -r requirements.txt
+
+

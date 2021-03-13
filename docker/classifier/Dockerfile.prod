@@ -1,0 +1,12 @@
+FROM python:3.9
+
+ENV HOME=/srv/www
+ENV CLASSIFIER_HOME=/srv/www/classifier_back
+ENV PYTHONUNBUFFERED=1
+COPY ./classifier_back $CLASSIFIER_HOME
+WORKDIR $CLASSIFIER_HOME
+RUN mkdir $CLASSIFIER_HOME/staticfiles
+
+RUN pip install -r requirements.txt
+
+

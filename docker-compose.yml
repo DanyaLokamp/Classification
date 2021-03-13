@@ -1,0 +1,66 @@
+version: '3'
+
+
+volumes:
+    pgdata:
+        driver: local
+services:
+    nginx:
+        restart: always
+        build: ./docker/nginx
+        image: nginx:latest
+        expose:
+          - 8080
+        ports:
+          - "80:8080"
+        volumes:
+            - ./back/static:/srv/www/back/static
+        depends_on:
+            - python
+    python:
+        restart: always
+        env_file:
+            - ./back/back/.env.prod
+        build:
+            context: .
+            dockerfile: docker/python/Dockerfile.prod
+        volumes:
+            - ./back:/srv/www/back
+        expose:
+          - 8000
+        ports:
+          - 8000:8000
+        depends_on:
+            - postgres_db
+        command: "gunicorn -c gunicorn.py back.wsgi"
+    classifier:
+        restart: always
+        env_file:
+            - ./classifier_back/classifier_back/.env.prod
+        build:
+            context: .
+            dockerfile: docker/classifier/Dockerfile.prod
+        volumes:
+            - ./classifier_back:/srv/www/classifier_back
+        expose:
+            - 8001
+        ports:
+            - 8001:8001
+        depends_on:
+            - postgres_db
+        command: "gunicorn -c gunicorn.py back.wsgi"
+    postgres_db:
+        image: postgres:9.3.22
+        env_file:
+            - ./back/back/.env.prod
+#        ports:
+#            - 5432:5432
+#        environment:
+#            POSTGRES_USER: postgres
+#            POSTGRES_PASSWORD: root
+#            POSTGRES_DB: postgres
+##            POSTGRES_PORT: 5432
+#            POSTGRES_HOST: postgres_db
+#            PGDATA: /var/lib/postgresql/data
+#        volumes:
+#            - pgdata:/var/lib/postgresql/data

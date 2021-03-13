@@ -1,0 +1,8 @@
+djangorestframework
+django
+gunicorn
+django-environ
+environ
+gevent
+psycopg2
+django-cors-headers
